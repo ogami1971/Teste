@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>TributoMaster - Analista Tributário</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f1c40f;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: bold;
+            color: var(--dark);
+        }
+
+        .stat-icon {
+            font-size: 1.2rem;
+        }
+
+        .main-container {
+            flex: 1;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .world-map {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .world-title {
+            text-align: center;
+            color: var(--dark);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .level-path {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .level-node {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 4px solid #bdc3c7;
+            position: relative;
+        }
+
+        .level-node.unlocked {
+            background: var(--secondary);
+            border-color: #27ae60;
+            transform: scale(1.1);
+        }
+
+        .level-node.locked {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .level-node.completed {
+            background: var(--warning);
+            border-color: #f39c12;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            color: var(--dark);
+            margin-bottom: 20px;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: var(--light);
+            border: 3px solid #bdc3c7;
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            color: var(--dark);
+        }
+
+        .option-btn:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+        }
+
+        .option-btn.selected {
+            background: var(--primary);
+            color: white;
+            border-color: #2980b9;
+        }
+
+        .option-btn.correct {
+            background: var(--secondary);
+            color: white;
+            border-color: #27ae60;
+        }
+
+        .option-btn.wrong {
+            background: var(--danger);
+            color: white;
+            border-color: #c0392b;
+        }
+
+        .action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            padding: 15px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+        }
+
+        .action-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .action-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .progress-container {
+            background: #ecf0f1;
+            border-radius: 10px;
+            height: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: var(--secondary);
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .feedback-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .feedback-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 90%;
+            text-align: center;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .feedback-emoji {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .feedback-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .feedback-explanation {
+            color: #7f8c8d;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .home-screen {
+            text-align: center;
+            color: white;
+        }
+
+        .app-title {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .app-subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .start-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 20px 60px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 0.2s ease;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .bottom-nav {
+            background: var(--card-bg);
+            padding: 10px;
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid #ecf0f1;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            cursor: pointer;
+            color: #7f8c8d;
+            transition: color 0.2s ease;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-icon {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .nav-label {
+            font-size: 0.8rem;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .level-node {
+                width: 70px;
+                height: 70px;
+                font-size: 1.8rem;
+            }
+            
+            .question-text {
+                font-size: 1.1rem;
+            }
+            
+            .app-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header com Estatísticas -->
+    <div class="header" id="header" style="display: none;">
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-icon">❤️</span>
+                <span id="lives-display">5</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">🔥</span>
+                <span id="streak-display">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">⭐</span>
+                <span id="xp-display">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">💎</span>
+                <span id="gems-display">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Container Principal -->
+    <div class="main-container">
+        <!-- Tela Inicial -->
+        <div id="home-screen" class="screen active home-screen">
+            <h1 class="app-title">TributoMaster</h1>
+            <p class="app-subtitle">Domine a carreira de Analista Tributário</p>
+            <button class="start-btn" onclick="app.startLearning()">Começar Agora</button>
+            
+            <div style="margin-top: 40px; text-align: left;">
+                <h3 style="margin-bottom: 15px;">📚 Seus Mundos de Estudo:</h3>
+                <div id="worlds-preview" style="display: grid; gap: 10px;"></div>
+            </div>
+        </div>
+
+        <!-- Mapa dos Mundos -->
+        <div id="world-map-screen" class="screen">
+            <div class="world-map">
+                <h2 class="world-title" id="current-world-title">Fundamentos Tributários</h2>
+                <div class="level-path" id="level-path">
+                    <!-- Níveis serão inseridos aqui via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Tela de Questão -->
+        <div id="question-screen" class="screen">
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+            </div>
+            
+            <div class="question-card">
+                <div class="question-text" id="question-text">Carregando questão...</div>
+                <div class="options-grid" id="options-grid">
+                    <!-- Opções serão inseridas aqui via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Tela de Conclusão -->
+        <div id="completion-screen" class="screen home-screen">
+            <div style="font-size: 4rem; margin-bottom: 20px;">🏆</div>
+            <h2 style="color: white; margin-bottom: 10px;">Nível Completado!</h2>
+            <p style="color: white; margin-bottom: 30px;" id="completion-message">Você ganhou +50 XP</p>
+            <button class="start-btn" onclick="app.showWorldMap()">Continuar</button>
+        </div>
+    </div>
+
+    <!-- Barra de Ação (para questões) -->
+    <div class="action-bar" id="action-bar" style="display: none;">
+        <button class="action-btn" id="check-btn" onclick="app.checkAnswer()" disabled>VERIFICAR</button>
+        <button class="action-btn" id="continue-btn" onclick="app.nextQuestion()" style="display: none;">CONTINUAR</button>
+    </div>
+
+    <!-- Modal de Feedback -->
+    <div class="feedback-modal" id="feedback-modal">
+        <div class="feedback-content">
+            <div class="feedback-emoji" id="feedback-emoji">✅</div>
+            <div class="feedback-title" id="feedback-title">Correto!</div>
+            <div class="feedback-explanation" id="feedback-explanation"></div>
+            <button class="action-btn" onclick="app.closeFeedback()">CONTINUAR</button>
+        </div>
+    </div>
+
+    <!-- Navegação Inferior -->
+    <div class="bottom-nav" id="bottom-nav" style="display: none;">
+        <div class="nav-item active" onclick="app.showWorldMap()">
+            <div class="nav-icon">🗺️</div>
+            <div class="nav-label">Mundos</div>
+        </div>
+        <div class="nav-item" onclick="app.showProfile()">
+            <div class="nav-icon">👤</div>
+            <div class="nav-label">Perfil</div>
+        </div>
+        <div class="nav-item" onclick="app.showSettings()">
+            <div class="nav-icon">⚙️</div>
+            <div class="nav-label">Ajustes</div>
+        </div>
+    </div>
+
+    <script>
+        // Dados do Aplicativo
+        const appData = {
+            worlds: [
+                {
+                    id: 1,
+                    title: "Fundamentos Tributários",
+                    icon: "📚",
+                    levels: [
+                        {
+                            id: 1,
+                            title: "Princípios Constitucionais",
+                            questions: [
+                                {
+                                    text: "Qual princípio tributário veda a cobrança de tributos no mesmo exercício financeiro em que haja sido publicada a lei que os instituiu?",
+                                    options: ["Legalidade", "Anterioridade", "Irretroatividade", "Isonomia"],
+                                    correct: 1,
+                                    explanation: "O princípio da anterioridade (art. 150, III, 'b' e 'c' da CF) exige que a lei seja publicada antes do exercício financeiro e com antecedência mínima de 90 dias."
+                                },
+                                {
+                                    text: "O princípio da legalidade tributária significa que:",
+                                    options: [
+                                        "O Executivo pode criar tributos por decreto",
+                                        "Somente lei pode instituir ou majorar tributos",
+                                        "O Legislativo pode criar tributos sem limites",
+                                        "Os municípios têm liberdade total para criar impostos"
+                                    ],
+                                    correct: 1,
+                                    explanation: "Art. 150, I da CF: 'Sem prejuízo de outras garantias asseguradas ao contribuinte, é vedado à União, aos Estados, ao Distrito Federal e aos Municípios exigir tributo sem lei que o estabeleça.'"
+                                },
+                                {
+                                    text: "A imunidade tributária recíproca impede que:",
+                                    options: [
+                                        "União tribute Estados",
+                                        "Estados munícipios",
+                                        "Entes federativos tribem reciprocamente patrimônio, renda ou serviços",
+                                        "Empresas públicas sejam tributadas"
+                                    ],
+                                    correct: 2,
+                                    explanation: "Art. 150, VI, 'a' da CF estabelece imunidade recíproca entre União, Estados, DF e Municípios quanto a patrimônio, renda e serviços."
+                                }
+                            ]
+                        },
+                        {
+                            id: 2,
+                            title: "Competência Tributária",
+                            questions: [
+                                {
+                                    text: "Qual ente federativo tem competência para instituir o IPTU?",
+                                    options: ["União", "Estado", "Distrito Federal", "Município"],
+                                    correct: 3,
+                                    explanation: "O IPTU (Imposto sobre Propriedade Predial e Territorial Urbana) é de competência municipal, conforme art. 156, I da CF."
+                                },
+                                {
+                                    text: "O ICMS é um imposto de competência:",
+                                    options: ["Da União", "Dos Estados e DF", "Dos Municípios", "Compartilhada"],
+                                    correct: 1,
+                                    explanation: "O ICMS (Imposto sobre Operações relativas à Circulação de Mercadorias) é de competência dos Estados e do Distrito Federal (art. 155, II da CF)."
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 2,
+                    title: "IRPJ e CSLL",
+                    icon: "💼",
+                    levels: [
+                        {
+                            id: 1,
+                            title: "Lucro Real",
+                            questions: [
+                                {
+                                    text: "No Lucro Real, a alíquota básica do IRPJ é:",
+                                    options: ["15%", "20%", "25%", "30%"],
+                                    correct: 0,
+                                    explanation: "A alíquota básica do IRPJ no Lucro Real é de 15%, podendo haver adicional de 10% sobre a parcela do lucro que exceder R$ 20.000,00 mensais."
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 3,
+                    title: "ICMS",
+                    icon: "🚚",
+                    levels: [
+                        {
+                            id: 1,
+                            title: "Fato Gerador do ICMS",
+                            questions: []
+                        }
+                    ]
+                },
+                {
+                    id: 4,
+                    title: "PIS/COFINS",
+                    icon: "📊",
+                    levels: [
+                        {
+                            id: 1,
+                            title: "Regime Não-Cumulativo",
+                            questions: []
+                        }
+                    ]
+                },
+                {
+                    id: 5,
+                    title: "Obrigações Acessórias",
+                    icon: "📝",
+                    levels: [
+                        {
+                            id: 1,
+                            title: "SPED Fiscal",
+                            questions: []
+                        }
+                    ]
+                },
+                {
+                    id: 6,
+                    title: "Contencioso Administrativo",
+                    icon: "⚖️",
+                    levels: [
+                        {
+                            id: 1,
+                            title: "Recursos Administrativos",
+                            questions: []
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // Estado do Usuário
+        let userState = {
+            lives: 5,
+            streak: 0,
+            xp: 0,
+            gems: 0,
+            completedLevels: [],
+            currentWorld: 0,
+            currentLevel: 0,
+            currentQuestion: 0,
+            selectedOption: null
+        };
+
+        // Sistema do Aplicativo
+        const app = {
+            init() {
+                this.loadState();
+                this.updateStats();
+                this.renderWorldsPreview();
+                
+                // Registrar Service Worker para offline
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('sw.js').catch(() => {
+                        console.log('Service Worker não registrado (opcional para uso local)');
+                    });
+                }
+            },
+
+            loadState() {
+                const saved = localStorage.getItem('tributoMasterState');
+                if (saved) {
+                    userState = { ...userState, ...JSON.parse(saved) };
+                }
+            },
+
+            saveState() {
+                localStorage.setItem('tributoMasterState', JSON.stringify(userState));
+            },
+
+            updateStats() {
+                document.getElementById('lives-display').textContent = userState.lives;
+                document.getElementById('streak-display').textContent = userState.streak;
+                document.getElementById('xp-display').textContent = userState.xp;
+                document.getElementById('gems-display').textContent = userState.gems;
+            },
+
+            renderWorldsPreview() {
+                const preview = document.getElementById('worlds-preview');
+                preview.innerHTML = appData.worlds.map((world, index) => `
+                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 2rem;">${world.icon}</span>
+                        <div style="text-align: left;">
+                            <div style="font-weight: bold;">${world.title}</div>
+                            <div style="font-size: 0.9rem; opacity: 0.8;">${world.levels.length} níveis</div>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            startLearning() {
+                document.getElementById('home-screen').classList.remove('active');
+                document.getElementById('header').style.display = 'block';
+                document.getElementById('bottom-nav').style.display = 'flex';
+                this.showWorldMap();
+            },
+
+            showWorldMap() {
+                this.hideAllScreens();
+                document.getElementById('world-map-screen').classList.add('active');
+                this.renderLevelPath();
+            },
+
+            renderLevelPath() {
+                const world = appData.worlds[userState.currentWorld];
+                document.getElementById('current-world-title').textContent = world.title;
+                
+                const levelPath = document.getElementById('level-path');
+                levelPath.innerHTML = world.levels.map((level, index) => {
+                    const isUnlocked = index === 0 || userState.completedLevels.includes(`${userState.currentWorld}-${index}`);
+                    const isCompleted = userState.completedLevels.includes(`${userState.currentWorld}-${level.id}`);
+                    
+                    return `
+                        <div class="level-node ${isUnlocked ? 'unlocked' : 'locked'} ${isCompleted ? 'completed' : ''}" 
+                             onclick="${isUnlocked ? `app.startLevel(${index})` : ''}">
+                            ${isCompleted ? '✅' : level.id}
+                        </div>
+                    `;
+                }).join('');
+            },
+
+            startLevel(levelIndex) {
+                const world = appData.worlds[userState.currentWorld];
+                const level = world.levels[levelIndex];
+                
+                if (level.questions.length === 0) {
+                    alert('Este nível estará disponível em breve!');
+                    return;
+                }
+                
+                userState.currentLevel = levelIndex;
+                userState.currentQuestion = 0;
+                userState.selectedOption = null;
+                
+                this.hideAllScreens();
+                document.getElementById('question-screen').classList.add('active');
+                document.getElementById('action-bar').style.display = 'flex';
+                
+                this.renderQuestion();
+            },
+
+            renderQuestion() {
+                const world = appData.worlds[userState.currentWorld];
+                const level = world.levels[userState.currentLevel];
+                const question = level.questions[userState.currentQuestion];
+                
+                document.getElementById('question-text').textContent = question.text;
+                
+                const optionsGrid = document.getElementById('options-grid');
+                optionsGrid.innerHTML = question.options.map((option, index) => `
+                    <button class="option-btn" onclick="app.selectOption(${index})">${option}</button>
+                `).join('');
+                
+                const progress = ((userState.currentQuestion) / level.questions.length) * 100;
+                document.getElementById('progress-bar').style.width = `${progress}%`;
+                
+                document.getElementById('check-btn').disabled = true;
+                document.getElementById('check-btn').style.display = 'block';
+                document.getElementById('continue-btn').style.display = 'none';
+                
+                userState.selectedOption = null;
+            },
+
+            selectOption(index) {
+                userState.selectedOption = index;
+                
+                const buttons = document.querySelectorAll('.option-btn');
+                buttons.forEach((btn, i) => {
+                    btn.classList.toggle('selected', i === index);
+                });
+                
+                document.getElementById('check-btn').disabled = false;
+            },
+
+            checkAnswer() {
+                const world = appData.worlds[userState.currentWorld];
+                const level = world.levels[userState.currentLevel];
+                const question = level.questions[userState.currentQuestion];
+                
+                const buttons = document.querySelectorAll('.option-btn');
+                buttons[userState.selectedOption].classList.add(
+                    userState.selectedOption === question.correct ? 'correct' : 'wrong'
+                );
+                
+                if (userState.selectedOption === question.correct) {
+                    // Resposta correta
+                    setTimeout(() => {
+                        this.showFeedback(true, question.explanation);
+                    }, 500);
+                } else {
+                    // Resposta errada
+                    buttons[question.correct].classList.add('correct');
+                    userState.lives--;
+                    this.updateStats();
+                    this.saveState();
+                    
+                    if (userState.lives <= 0) {
+                        setTimeout(() => {
+                            alert('Suas vidas acabaram! Tente novamente mais tarde.');
+                            this.showWorldMap();
+                        }, 1000);
+                        return;
+                    }
+                    
+                    setTimeout(() => {
+                        this.showFeedback(false, question.explanation);
+                    }, 500);
+                }
+                
+                document.getElementById('check-btn').style.display = 'none';
+                document.getElementById('continue-btn').style.display = 'block';
+            },
+
+            showFeedback(isCorrect, explanation) {
+                const modal = document.getElementById('feedback-modal');
+                const emoji = document.getElementById('feedback-emoji');
+                const title = document.getElementById('feedback-title');
+                const expl = document.getElementById('feedback-explanation');
+                
+                emoji.textContent = isCorrect ? '🎉' : '😅';
+                title.textContent = isCorrect ? 'Correto!' : 'Incorreto';
+                title.style.color = isCorrect ? '#2ecc71' : '#e74c3c';
+                expl.textContent = explanation;
+                
+                modal.style.display = 'flex';
+            },
+
+            closeFeedback() {
+                document.getElementById('feedback-modal').style.display = 'none';
+                this.nextQuestion();
+            },
+
+            nextQuestion() {
+                const world = appData.worlds[userState.currentWorld];
+                const level = world.levels[userState.currentLevel];
+                
+                userState.currentQuestion++;
+                
+                if (userState.currentQuestion >= level.questions.length) {
+                    // Nível completado
+                    const xpGained = level.questions.length * 10;
+                    userState.xp += xpGained;
+                    userState.gems += 5;
+                    userState.completedLevels.push(`${userState.currentWorld}-${level.id}`);
+                    this.saveState();
+                    this.updateStats();
+                    
+                    this.hideAllScreens();
+                    document.getElementById('completion-screen').classList.add('active');
+                    document.getElementById('completion-message').textContent = `Você ganhou +${xpGained} XP e +5 💎`;
+                    document.getElementById('action-bar').style.display = 'none';
+                } else {
+                    this.renderQuestion();
+                }
+            },
+
+            showProfile() {
+                alert(`Perfil:\nXP: ${userState.xp}\nNíveis completados: ${userState.completedLevels.length}\nSequência: ${userState.streak} dias`);
+            },
+
+            showSettings() {
+                if (confirm('Deseja resetar todo o progresso?')) {
+                    localStorage.removeItem('tributoMasterState');
+                    location.reload();
+                }
+            },
+
+            hideAllScreens() {
+                document.querySelectorAll('.screen').forEach(screen => {
+                    screen.classList.remove('active');
+                });
+            }
+        };
+
+        // Inicializar aplicativo
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+    </script>
+</body>
+</html>
